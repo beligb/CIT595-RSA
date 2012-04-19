@@ -1,5 +1,5 @@
-#include <socket.h>
-#include "RSALibrary.c"
+#include "mysocket.h"
+#include "rsa.h"
 #include <pthread.h>
 
 int did_it_return = 0;
@@ -49,7 +49,7 @@ void *read_data(void *fd){
         }
         printf("BEGIN DECRYPTING!!!!!!d=%d, c=%d", args->thirdArg, args->secondArg);
         for(i = 0; i < size_of_buffer; i++) {
-            buffer[i] = decrypt(buffer_of_encoding[i], args->thirdArg, args->secondArg );
+            buffer[i] = endecrypt(buffer_of_encoding[i], args->thirdArg, args->secondArg );
             printf("buffer[i] = %c\n", buffer[i]);
         
         } 
@@ -105,9 +105,8 @@ int main(int argc, char** argv) {
 	   printf("Usage: %s port\n", argv[0]);
 	   exit(0);
 	}
-        first_prime = atoi(argv[2]);
-        sec_prime = atoi(argv[3]); 
-        generatePrimeNumbers(&first_prime, &sec_prime);
+        first_prime = getPrime();
+        sec_prime = getPrime();
         printf("firstPrime = %d, SecondPrime= %d\n", first_prime , sec_prime);
         int c = first_prime * sec_prime; 
         int t = totient(first_prime*sec_prime);
@@ -125,7 +124,7 @@ int main(int argc, char** argv) {
         send_key(&args);
         receive_key(&args);
         printf("e%d c%d d%d\n", args.firstArg, args.secondArg, args.thirdArg);
-        pthread_create(&readThread, NULL, readData, &args);
+        pthread_create(&readThread, NULL, read_data, &args);
         pthread_create(&writeThread, NULL, write_data, &args);
         pthread_join(readThread, NULL);
         pthread_cancel(writeThread);
