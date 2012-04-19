@@ -1,4 +1,45 @@
- /*Server==================================================*/
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+
+#define MSG_SIZE 80
+#define MAX_CLIENTS 95
+#define MYPORT 7400
+
+void exitClient(int fd, fd_set *readfds, char fd_array[], int *num_clients){
+    int i;
+    
+    close(fd);
+    FD_CLR(fd, readfds); //clear the leaving client from the set
+    for (i = 0; i < (*num_clients) - 1; i++)
+        if (fd_array[i] == fd)
+            break;          
+    for (; i < (*num_clients) - 1; i++)
+        (fd_array[i]) = (fd_array[i + 1]);
+    (*num_clients)--;
+}
+
+
+int main(int argc, char *argv[]) {
+   int i=0;
+   
+   int port;
+   int num_clients = 0;
+   int server_sockfd, client_sockfd;
+   struct sockaddr_in server_address;
+   int addresslen = sizeof(struct sockaddr_in);
+   int fd;
+   char fd_array[MAX_CLIENTS];
+   fd_set readfds, testfds, clientfds;
+   char msg[MSG_SIZE + 1];     
+   char kb_msg[MSG_SIZE + 10]; 
+
+/*Server==================================================*/
    if(argc==1 || argc == 3){
      if(argc==3){
        if(!strcmp("-p",argv[1])){
