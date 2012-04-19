@@ -10,10 +10,12 @@ int main(int argc, char** argv) {
 	   exit(0);
 	}
 	
-	fd = connectTo("localhost", atoi(argv[1]));
+	fd = connectTo("158.130.62.243", atoi(argv[1]));
 	
 	bzero(buffer, 256);        
-        while(fgets(buffer, 256, stdin) != NULL) {
+	scanf("Please input a test message: ", &buffer);
+
+        while(buffer != NULL) {
             write(fd, buffer, strlen(buffer));
             bzero(buffer, 256);
         }
