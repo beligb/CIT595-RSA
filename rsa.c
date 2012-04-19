@@ -275,35 +275,41 @@ int main() {
   long calcD = mod_inverse(pickE, tot);
   printf("This is my private d %ld\n", calcD);
 
+  msg1 = 80;
+  msg2 = 104;
+  msg3 = 65;
+  msg4 = 111;
+  msg5 = 87;
+
   long encrypted = endecrypt(msg1, pickE, n);
-  printf("This is msg1 %ld\n", msg1);
+  printf("This is msg1 %ld %c\n", msg1, (char)msg1);
   printf("This is msg1 encrypted %ld\n", encrypted);
   long decrypted = endecrypt(encrypted, calcD, n);
-  printf("This is msg1 decrypted %ld\n", decrypted);
+  printf("This is msg1 decrypted %ld %c\n", decrypted, (char)decrypted);
 
   encrypted = endecrypt(msg2, pickE, n);
-  printf("This is msg2 %ld\n", msg2);
+  printf("This is msg2 %ld %c\n", msg2, (char)msg2);
   printf("This is msg2 encrypted %ld\n", encrypted);
   decrypted = endecrypt(encrypted, calcD, n);
-  printf("This is msg2 decrypted %ld\n", decrypted);
+  printf("This is msg2 decrypted %ld %c\n", decrypted, (char)decrypted);
 
   encrypted = endecrypt(msg3, pickE, n);
-  printf("This is msg3 %ld\n", msg3);
+  printf("This is msg3 %ld %c\n", msg3, (char)msg3);
   printf("This is msg3 encrypted %ld\n", encrypted);
   decrypted = endecrypt(encrypted, calcD, n);
-  printf("This is msg3 decrypted %ld\n", decrypted);
+  printf("This is msg3 decrypted %ld %c\n", decrypted, (char)decrypted);
 
   encrypted = endecrypt(msg4, pickE, n);
-  printf("This is msg4 %ld\n", msg4);
+  printf("This is msg4 %ld %c\n", msg4, (char)msg4);
   printf("This is msg4 encrypted %ld\n", encrypted);
   decrypted = endecrypt(encrypted, calcD, n);
-  printf("This is msg4 decrypted %ld\n", decrypted);
+  printf("This is msg4 decrypted %ld %c\n", decrypted, (char)decrypted);
 
   encrypted = endecrypt(msg5, pickE, n);
-  printf("This is msg5 %ld\n", msg5);
+  printf("This is msg5 %ld %c\n", msg5, (char)msg5);
   printf("This is msg5 encrypted %ld\n", encrypted);
   decrypted = endecrypt(encrypted, calcD, n);
-  printf("This is msg5 decrypted %ld\n", decrypted);
+  printf("This is msg5 decrypted %ld %c\n", decrypted, (char)decrypted);
 
   int counter = 0;
   while(counter < 10) {
