@@ -50,8 +50,8 @@ long gcd(long a, long b) {
 }
 
 // Computes Math.mod(Math.pow(a, b), c), for large values of a, b, c
-long modulo(long a, long b, long c) {
-  long solution = 1;
+int modulo(int a, long b, long c) {
+  int solution = 1;
   long length = 0;
 
   while(b > 0) {
