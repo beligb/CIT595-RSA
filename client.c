@@ -2,14 +2,14 @@
 #include "mysocket.h"
 #include "rsab.h"
 #include <pthread.h>
-#include <math.h>
+#include <stdio.h>
 
 struct Parameters {
     int connfd, clientE, clientN, clientD, serverE, serverN;
 };
 
 char *numToString(int length) {
-    char size[20];
+    char size[100];
     int character = length;
     int counter = 0;
     while(length > 0) {
@@ -18,7 +18,7 @@ char *numToString(int length) {
         length = length / 10;
         counter++;
     }
-    char *number = (char *)malloc(sizeof(char)*20);
+    char *number = (char *)malloc(sizeof(char)*100);
     int index = counter;
     int i;
     for(i = 0; i < index; i++) {
@@ -55,30 +55,32 @@ void *read_data(void *fd) {
     bzero(buffer_of_encoding, 512);
 
     while(1) {
-        recv(args->connfd, buffer_of_encoding, sizeof(buffer_of_encoding), 0);
-        size_of_buffer = strlen(buffer_of_encoding);
-        printf("\nMessage received from Server: %s\n", buffer_of_encoding);
+        int n = recv(args->connfd, buffer_of_encoding, sizeof(buffer_of_encoding), 0);
+        size_of_buffer = n / 4;
+        if(size_of_buffer > 0) {
+            printf("\nMessage received from Server: %s\n", buffer_of_encoding);
 
-        printf("Server's message decrypted: ");
-	i = 0; 
-	char *ptr = strtok(buffer_of_encoding, " ");
-	while(ptr != NULL) {
-            buffer[i] = (char)endecrypt(atoi(ptr), args->clientD, args->clientN);
-            ptr = strtok(NULL, " ");
-            i++;
-	}
-	buffer[i] = '\0';
-	printf("%s\n", buffer);
-        printf("Please enter a message to send (Type 'quit' to quit): ");
+            printf("Server's message decrypted: ");
+            i = 0;
+            char *ptr = strtok(buffer_of_encoding, " ");
+            while(ptr != NULL) {
+                buffer[i] = (char)endecrypt(atoi(ptr), args->clientD, args->clientN);
+                ptr = strtok(NULL, " ");
+                i++;
+            }
+            buffer[i] = '\0';
+            printf("%s\n", buffer);
 
-        if(strcmp(buffer, "quit") == 0) {
-            write(args->connfd, buffer, strlen(buffer));
-            break;
+            if(strcmp(buffer, "quit") == 0) {
+                write(args->connfd, buffer, strlen(buffer));
+                break;
+            }
+
+            bzero(buffer, 512);
+            bzero(buffer_of_encoding, 512);
         }
-
-        bzero(buffer, 512);
-	bzero(buffer_of_encoding, 512);
     }
+    close(args->connfd);
     exit(0);
 }
 
@@ -96,7 +98,7 @@ void *write_data(void *fd) {
     int j = 0;
 
     while(1) {
-        printf("Please enter a message to send (Type 'quit' to quit): ");
+        fflush(stdin);
         while(1) {
             letter[i] = getchar();
             if(letter[i] == '\n') {
@@ -116,7 +118,7 @@ void *write_data(void *fd) {
             i++;
 	}
 
-	write(args->connfd, buffer, strlen(buffer));
+        write(args->connfd, buffer, strlen(buffer));
         if(strcmp(letter, "quit") == 0) {
             break;
         }
@@ -125,6 +127,7 @@ void *write_data(void *fd) {
 	bzero(buffer, 512);
 	bzero(buffer_of_encoding, 512);
     }
+    close(args->connfd);
     exit(0);
 }
 
