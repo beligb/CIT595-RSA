@@ -94,7 +94,7 @@ long coprime(long x) {
 }
 
 // Given an integer representing an ASCII value, encrypt it via RSA
-long endecrypt(long msg, long key, long c) {
+long encrypt(long msg, long key, long c) {
   return modulo(msg, key, c);
 }
 
