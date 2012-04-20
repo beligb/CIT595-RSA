@@ -37,7 +37,6 @@ void *read_data(void *fd){
     int i = 0;
     
     while(1) {
-    
         size_of_buffer = recv(args->connfd, buffer_of_encoding, sizeof(buffer_of_encoding), 0);
         size_of_buffer /= 4;
         printf("Server recieved the data\n"); 
@@ -101,12 +100,16 @@ int main(int argc, char** argv) {
 	char buffer[256];
 	int first_prime, sec_prime; //the two prime numbers
 
-	if(argc < 4) {
+	if(argc < 2) {
 	   printf("Usage: %s port\n", argv[0]);
 	   exit(0);
 	}
-        first_prime = getPrime();
-        sec_prime = getPrime();
+
+	srvfd = makeListener(atoi(argv[1]));
+	connfd = listenFor(srvfd);
+
+        first_prime = 3101;
+        sec_prime = 971;
         printf("firstPrime = %d, SecondPrime= %d\n", first_prime , sec_prime);
         int c = first_prime * sec_prime; 
         int t = totient(first_prime*sec_prime);
@@ -114,9 +117,6 @@ int main(int argc, char** argv) {
         int d = mod_inverse(e, (first_prime - 1) * (sec_prime - 1)); 
         printf("c = %d t = %d e = %d d = %d\n", c,t,e,d);
 
-
-	srvfd = makeListener(atoi(argv[1]));
-	connfd = listenFor(srvfd);
         args.connfd = connfd;
         args.firstArg  = e;
         args.secondArg = c;
