@@ -20,7 +20,7 @@ int generatePrimeNumbers(int *m, int *n) {
     *m = primeList[*m - 1];
     *n = primeList[*n - 1];     
     free(primeList);
-
+}
 int totient(int n) {
     int *primeList  = (int *)malloc(n * sizeof(int));
     primeList[0] = 2;
