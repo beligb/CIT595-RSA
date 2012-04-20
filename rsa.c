@@ -55,7 +55,7 @@ int totient(int n) {
 }
 
 // Generate a prime number
-long getPrime() {
+/*long getPrime() {
   long value = 0;
   while(1) {
     value = rand() % 10000;
@@ -100,7 +100,7 @@ long gcd(long a, long b) {
 
   return b;
 }
-
+*/
 // Computes Math.mod(Math.pow(a, b), c), for large values of a, b, c
 long modulo(long a, long b, long c) {
   long solution = 1;
@@ -192,8 +192,14 @@ long mod_inverse(long base, long m) {
   return A % mod;
 }
 
+void generateKeys(long a, long b, long *e, long *d, long *c) {
+    *c = a * b;
+    *e = coprime( (a - 1) * (b - 1));
+    *d = mod_inverse(*e,  ((a - 1) * (b - 1)));
+}
+
 // Compute Euler's Totient (assume n is product of two primes)
-long totient(long n) {
+/*long totient(long n) {
   if(n == 0) {
     return 1;
   }
@@ -206,8 +212,8 @@ long totient(long n) {
   }
   return counter;
 }
-
-int main() {
+*/
+/*int main() {
   srand(time(0));
   long a = 45;
   long b = 34;
