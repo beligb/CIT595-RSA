@@ -66,7 +66,7 @@ void *read_data(void *fd) {
 	  if(buffer_of_encoding[i] != ' ') {
 	    ascii[i] = buffer_of_encoding[i];
 	  } else {
-	    buffer[j] = endecrypt(atoi(ascii), args->serverD, args->serverN);
+            buffer[j] = encrypt(atoi(ascii), args->serverD, args->serverN);
 	    j++;
 	    bzero(ascii, 20);
 	  }
