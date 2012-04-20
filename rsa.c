@@ -156,7 +156,7 @@ long encrypt(long msg, long key, long c) {
 }
 
 char decrypt(long msg, long key, int c) {
-    printf("%d decrypted using key=%d,c=%d as %d", msg, key, c, modulo(msg, key, c));
+    //printf("%d decrypted using key=%d,c=%d as %d", msg, key, c, modulo(msg, key, c));
     return modulo(msg, key, c);
 }
 
@@ -198,9 +198,11 @@ long mod_inverse(long base, long m) {
 }
 
 void generateKeys(long a, long b, long *e, long *d, long *c) {
+  while((*c < 2) || (*e < 2) || (*d < 2)) {
     *c = a * b;
     *e = coprime( (a - 1) * (b - 1));
     *d = mod_inverse(*e,  ((a - 1) * (b - 1)));
+  }
 }
 
 // Compute Euler's Totient (assume n is product of two primes)
