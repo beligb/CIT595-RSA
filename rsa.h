@@ -1,25 +1,63 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
-// Generate a prime number
-long getPrime() {
-  long value = 0;
-  while(1) {
-    value = rand() % 10000;
-    int check = 0;
-    int i;
 
-    for(i = 2; i < value; i++) {
-      if(value % i == 0) {
-	check = 1;
-      }
+int isPrime(long x) {
+    long i = 0;
+    for(i = 2; i  < x; i++) {
+        if((x % i) == 0)return 0;
     }
-    if(check == 0) {
-      break;
+    return 1;
+}
+
+int generatePrimeNumbers(long *m, long *n) {
+    long maximum = *m > *n ? *m : *n;
+    long *primeList = (long *)malloc(maximum * sizeof(long));
+    long index = 1;
+    long i = 3;
+    primeList[0] = 2;
+    while(index < maximum) {
+        if (isPrime(i) == 1) {
+            primeList[index] = i;
+            index++;
+            
+        }
+        i += 2; 
     }
-  }
-  return value;
+    
+    *m = primeList[*m - 1];
+    *n = primeList[*n - 1];     
+    free(primeList);
+}
+
+long totient( long n) {
+    long *primeList  = ( long *)malloc(n * sizeof( long));
+    primeList[0] = 2;
+    long j = 0;
+    long p;
+    long q;
+    long index = 1;
+    long i = 2;
+    for(i = 3; i < n; i +=2) {
+        if(isPrime(i) == 1) {
+            primeList[index] = i;
+            index++;
+        }
+    }
+    for(i = 0; i < index; i++) {
+        for (j = 0 ; j  <index; j++) {
+            if(primeList[i] * primeList[j] == n) {
+                p = primeList[i];
+                q = primeList[j];
+                free(primeList);
+                return (p - 1) * (q - 1);
+            }
+        }
+    }
+    free(primeList);
+    return -1;
 }
 
 long getM(long a, long b) {
@@ -50,8 +88,8 @@ long gcd(long a, long b) {
 }
 
 // Computes Math.mod(Math.pow(a, b), c), for large values of a, b, c
-int modulo(int a, long b, long c) {
-  int solution = 1;
+long modulo(long a, long b, long c) {
+  long solution = 1;
   long length = 0;
 
   while(b > 0) {
@@ -94,9 +132,15 @@ long coprime(long x) {
 }
 
 // Given an integer representing an ASCII value, encrypt it via RSA
-int endecrypt(int msg, long key, long c) {
+long encrypt(long msg, long key, long c) {
   return modulo(msg, key, c);
 }
+
+char decrypt(long msg, long key, int c) {
+//    printf("%d decrypted using key=%d,c=%d as %d", msg, key, c, modulo(msg, key, c));
+    return modulo(msg, key, c);
+}
+
 
 // Compute the modular inverse base^-1 % m
 long mod_inverse(long base, long m) {
@@ -134,17 +178,12 @@ long mod_inverse(long base, long m) {
   return A % mod;
 }
 
-// Compute Euler's Totient (assume n is product of two primes)
-long totient(long n) {
-  if(n == 0) {
-    return 1;
+void generateKeys(long a, long b, long *e, long *d, long *c) {
+  while((*c < 2) || (*e < 2) || (*d < 2)) {
+    *c = a * b;
+    *e = coprime( (a - 1) * (b - 1));
+    *d = mod_inverse(*e,  ((a - 1) * (b - 1)));
   }
-  long counter = 0;
-  long i;
-  for(i = 1; i <= n; i++) {
-    if(gcd(i, n) == 1) {
-      counter++;
-    }
-  }
-  return counter;
 }
+
+
