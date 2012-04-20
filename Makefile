@@ -6,10 +6,10 @@ rsa:
 	gcc -Wall -g rsa.c -o rsa 
 
 client:	mysocket.h
-	gcc -Wall -g -lpthread -lm client.c -o client 
+	gcc -Wall -g -lpthread client.c -o client 
 
 server:	mysocket.h
-	gcc -Wall -g -lpthread -lm server.c -o server 
+	gcc -Wall -g -lpthread server.c -o server 
 
 clean:
 	rm *.o 
