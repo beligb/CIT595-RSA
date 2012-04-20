@@ -5,89 +5,124 @@
 int did_it_return = 0;
 
 struct Parameters {
-int connfd, firstArg, secondArg, thirdArg, fourthArg, fifthArg;
+  int connfd, clientE, clientN, serverD, serverE, serverN;
 };
 
-/* Function to send the Keys */
+char *numToString(int length) {
+  char size[20];
+  int character = length;
+  int counter = 0;
+  while(length > 0) {
+    character = length % 10;
+    size[counter] = character + 48;
+    length = length / 10;
+    counter++;
+  }
+  char *number = (char *)malloc(sizeof(char)*20);
+  int index = counter;
+  int i;
+  for(i = 0; i < index; i++) {
+    number[i] = size[counter - 1];
+    counter--;
+  }
+  number[i] = '\0';
+  return number;
+}
 
+/* Function to send the Keys */
 void send_key(struct Parameters *args){
-    write(args->connfd, &args->firstArg, sizeof(int));
-    write(args->connfd, &args->secondArg, sizeof(int));
-    printf("My public key is %d %d\n", args->firstArg, args->secondArg);
-    printf("My private key is %d, %d\n", args->thirdArg, args->secondArg);
+    write(args->connfd, &args->serverN, sizeof(int));
+    write(args->connfd, &args->serverE, sizeof(int));
+    printf("My public key is %d %d\n", args->serverN, args->serverE);
+    printf("My private key is %d\n", args->serverD);
 }
 
 /* Function to receive the Keys */
-
 void receive_key(struct Parameters *args) {
-    recv(args->connfd, &args->fourthArg, sizeof(int), 0);
-    recv(args->connfd, &args->fifthArg, sizeof(int), 0);
-    printf("Friends' public key : %d %d\n", args->fourthArg, args->fifthArg);
+    recv(args->connfd, &args->clientN, sizeof(int), 0);
+    recv(args->connfd, &args->clientE, sizeof(int), 0);
+    printf("The client's public key is %d %d\n", args->clientN, args->clientE);
 }
 
-/* Function to read the data & Decrypt it */
-void *read_data(void *fd){
+void *read_data(void *fd) {
     struct Parameters *args = (struct Parameters *)fd;
+    int i, j;
     int size_of_buffer = 0;
-    int buffer_of_encoding[512];
-    char buffer[512];  
+    char ascii[20];
+    char buffer_of_encoding[512];
+    char buffer[512];
+    bzero(ascii, 20);
     bzero(buffer, 512);
-     
     bzero(buffer_of_encoding, 512);
-    int i = 0;
-    
+
     while(1) {
         size_of_buffer = recv(args->connfd, buffer_of_encoding, sizeof(buffer_of_encoding), 0);
         size_of_buffer /= 4;
-        printf("Server recieved the data\n"); 
-        printf("size_of_buffer: %d\n", size_of_buffer);  
-        
-        for (i = 0; i < size_of_buffer; i++) {
-                 buffer_of_encoding[i] = ntohl(buffer_of_encoding[i]);
-                 printf("%d\n", buffer_of_encoding[i]);
-        }
-        printf("BEGIN DECRYPTING!!!!!!d=%d, c=%d", args->thirdArg, args->secondArg);
+        printf("Message received from Client: %s\n", buffer_of_encoding);
+		
+        printf("Client's message decrypted: ");
+	j = 0;
         for(i = 0; i < size_of_buffer; i++) {
-            buffer[i] = endecrypt(buffer_of_encoding[i], args->thirdArg, args->secondArg );
-            printf("buffer[i] = %c\n", buffer[i]);
-        
-        } 
+	  if(buffer_of_encoding[i] != ' ') {
+	    ascii[i] = buffer_of_encoding[i];
+	  } else {
+	    buffer[j] = endecrypt(atoi(ascii), args->serverD, args->serverN);
+	    j++;
+	    bzero(ascii, 20);
+	  }
+        }
 
         if(strcmp(buffer, "quit") == 0) {
-	    write(args->connfd, buffer, sizeof(buffer));
-            return;    
-        }
-         bzero(buffer, 512);
-      
-    
+          write(args->connfd, buffer, sizeof(buffer));
+          exit(0);
+        } else {
+	  printf("%s\n\n", buffer);
+	}
+	
+        bzero(buffer, 512);
+	bzero(buffer_of_encoding, 512);
     }
 }
 
 /* Function to write the data*/
 void *write_data(void *fd) {
     struct Parameters *args = (struct Parameters *)fd;
+    char buffer_of_encoding[512];
     char buffer[512];
+    char number[10];
     bzero(buffer, 512);
+    bzero(buffer_of_encoding, 512);
+    char letter;
+
     int i = 0;
+    int j = 0;
     while(1) {
         while(1) {
-        if((buffer[i] = getchar()) == '\n') {
-            buffer[i] = '\0';
-            i = 0;
-            break;
-        }
-        else {
-            i++;
-        }
-        }
-       
-        write(args->connfd, buffer,strlen(buffer));
-        if(strcmp(buffer, "quit") == 0) {
-          
-           return;
-       }
-        bzero(buffer, 512);
-      
+	  letter = getchar();
+	  if(letter == '\n') {
+	    buffer[j] = '\0';
+	    i = 0;
+	    j = 0;
+	    break;
+	  } else {
+	    bzero(number, 10);
+	    strcpy(number, numToString(endecrypt((int)letter, args->clientE, args->clientN)));
+	    strcat(buffer, number);
+	    j += strlen(number);
+	    buffer[j] = ' ';
+	    j++;
+	    i++;
+	  }
+	}
+
+	if(strcmp(buffer, "quit") == 0) {
+	  exit(0);
+	} else {
+	  write(args->connfd, buffer, strlen(buffer));
+	}
+
+	bzero(buffer, 512);
+	bzero(buffer_of_encoding, 512);
     }
 }
 
@@ -108,24 +143,26 @@ int main(int argc, char** argv) {
 	srvfd = makeListener(atoi(argv[1]));
 	connfd = listenFor(srvfd);
 
-        first_prime = 3101;
-        sec_prime = 971;
+        first_prime = 31;
+        sec_prime = 17;
         printf("firstPrime = %d, SecondPrime= %d\n", first_prime , sec_prime);
         int c = first_prime * sec_prime; 
         int t = totient(first_prime*sec_prime);
         int e = coprime(t);  
-        int d = mod_inverse(e, (first_prime - 1) * (sec_prime - 1)); 
+        int d = mod_inverse(e, t); 
         printf("c = %d t = %d e = %d d = %d\n", c,t,e,d);
 
         args.connfd = connfd;
-        args.firstArg  = e;
-        args.secondArg = c;
-        args.thirdArg = d;
+        args.serverE = e;
+        args.serverN = c;
+        args.serverD = d;
         send_key(&args);
         receive_key(&args);
-        printf("e%d c%d d%d\n", args.firstArg, args.secondArg, args.thirdArg);
+
+        printf("e%d c%d d%d\n", args.serverE, args.serverN, args.serverD);
         pthread_create(&readThread, NULL, read_data, &args);
         pthread_create(&writeThread, NULL, write_data, &args);
+
         pthread_join(readThread, NULL);
         pthread_cancel(writeThread);
 	close(connfd);	
