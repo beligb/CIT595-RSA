@@ -135,31 +135,22 @@ int main(int argc, char** argv) {
 	char buffer[256];
 	int first_prime, sec_prime; //the two prime numbers
 
-	if(argc < 2) {
-	   printf("Usage: %s port\n", argv[0]);
+        if(argc < 4) {
+           printf("File PortNum Prime1 Prime2");
 	   exit(0);
 	}
-
-	srvfd = makeListener(atoi(argv[1]));
-	connfd = listenFor(srvfd);
-
-        first_prime = 31;
-        sec_prime = 17;
-        printf("firstPrime = %d, SecondPrime= %d\n", first_prime , sec_prime);
-        int c = first_prime * sec_prime; 
-        int t = totient(first_prime*sec_prime);
-        int e = coprime(t);  
-        int d = mod_inverse(e, t); 
-        printf("c = %d t = %d e = %d d = %d\n", c,t,e,d);
-
+        first_prime = atoi(argv[2]) + 6;
+        sec_prime = atoi(argv[3]) + 6;
+        generatePrimeNumbers(&first_prime, &sec_prime);
+        generateKeys(first_prime, sec_prime, &args.clientE, &args.serverD, &args.clientN);
+        args.run = 1;
+        srvfd = makeListener(atoi(argv[1]));
+        connfd = listenFor(srvfd);
         args.connfd = connfd;
-        args.serverE = e;
-        args.serverN = c;
-        args.serverD = d;
+
         send_key(&args);
         receive_key(&args);
 
-        printf("e%d c%d d%d\n", args.serverE, args.serverN, args.serverD);
         pthread_create(&readThread, NULL, read_data, &args);
         pthread_create(&writeThread, NULL, write_data, &args);
 
