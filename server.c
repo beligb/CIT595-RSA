@@ -1,31 +1,31 @@
 #include "mysocket.h"
 #include "rsab.h"
 #include <pthread.h>
-
+#include <stdio.h>
 
 struct Parameters {
-  int connfd, clientE, clientN, serverD, serverE, serverN;
+    int connfd, clientE, clientN, serverD, serverE, serverN;
 };
 
 char *numToString(int length) {
-  char size[20];
-  int character = length;
-  int counter = 0;
-  while(length > 0) {
-    character = length % 10;
-    size[counter] = character + 48;
-    length = length / 10;
-    counter++;
-  }
-  char *number = (char *)malloc(sizeof(char)*20);
-  int index = counter;
-  int i;
-  for(i = 0; i < index; i++) {
-    number[i] = size[counter - 1];
-    counter--;
-  }
-  number[i] = '\0';
-  return number;
+    char size[20];
+    int character = length;
+    int counter = 0;
+    while(length > 0) {
+        character = length % 10;
+        size[counter] = character + 48;
+        length = length / 10;
+        counter++;
+    }
+    char *number = (char *)malloc(sizeof(char)*20);
+    int index = counter;
+    int i;
+    for(i = 0; i < index; i++) {
+        number[i] = size[counter - 1];
+        counter--;
+    }
+    number[i] = '\0';
+    return number;
 }
 
 /* Function to send the Keys */
@@ -54,31 +54,31 @@ void *read_data(void *fd) {
     bzero(buffer_of_encoding, 512);
 
     while(1) {
-        recv(args->connfd, buffer_of_encoding, sizeof(buffer_of_encoding), 0);
-        size_of_buffer = strlen(buffer_of_encoding);
-        printf("\nMessage received from Client: %s\n", buffer_of_encoding);
+        int n = recv(args->connfd, buffer_of_encoding, sizeof(buffer_of_encoding), 0);
+        size_of_buffer = n / 4;
+        if(size_of_buffer > 0) {
+            printf("\nMessage received from Client: %s\n", buffer_of_encoding);
 
-        printf("Client's message decrypted: ");
-        i = 0;
-        char *ptr = strtok(buffer_of_encoding, " ");
-        while(ptr != NULL) {
-          buffer[i] = (char)endecrypt(atoi(ptr), args->serverD, args->serverN);
-          ptr = strtok(NULL, " ");
-          i++;
+            printf("Client's message decrypted: ");
+            i = 0;
+            char *ptr = strtok(buffer_of_encoding, " ");
+            while(ptr != NULL) {
+                buffer[i] = (char)endecrypt(atoi(ptr), args->serverD, args->serverN);
+                ptr = strtok(NULL, " ");
+                i++;
+            }
+            buffer[i] = '\0';
+            printf("%s\n", buffer);
+
+            if(strcmp(buffer, "quit") == 0) {
+                close(args->connfd);
+                break;
+            }
+
+            bzero(buffer, 512);
+            bzero(buffer_of_encoding, 512);
         }
-        buffer[i] = '\0';
-        printf("%s\n", buffer);
-        printf("Please enter a message to send (Type 'quit' to quit): ");
-
-        if(strcmp(buffer, "quit") == 0) {
-            write(args->connfd, buffer, strlen(buffer));
-            break;
-        }
-
-        bzero(buffer, 512);
-        bzero(buffer_of_encoding, 512);
     }
-    exit(0);
 }
 
 /* Function to write the data*/
@@ -95,24 +95,24 @@ void *write_data(void *fd) {
     int j = 0;
 
     while(1) {
-        printf("Please enter a message to send (Type 'quit' to quit): ");
+        fflush(stdin);
         while(1) {
-          letter[i] = getchar();
-          if(letter[i] == '\n') {
-            buffer[j] = '\0';
-            letter[i] = '\0';
-            j = 0;
-            i = 0;
-            break;
-          } else {
-            bzero(number, 10);
-            strcpy(number, numToString(endecrypt((int)letter[i], args->clientE, args->clientN)));
-            strcat(buffer, number);
-            j += strlen(number);
-            buffer[j] = ' ';
-            j++;
-          }
-          i++;
+            letter[i] = getchar();
+            if(letter[i] == '\n') {
+                buffer[j] = '\0';
+                letter[i] = '\0';
+                j = 0;
+                i = 0;
+                break;
+            } else {
+                bzero(number, 10);
+                strcpy(number, numToString(endecrypt((int)letter[i], args->clientE, args->clientN)));
+                strcat(buffer, number);
+                j += strlen(number);
+                buffer[j] = ' ';
+                j++;
+            }
+            i++;
         }
 
         write(args->connfd, buffer, strlen(buffer));
@@ -124,25 +124,25 @@ void *write_data(void *fd) {
         bzero(buffer, 512);
         bzero(buffer_of_encoding, 512);
     }
-    exit(0);
 }
 
 /* Main function that also spawns the thread */
 int main(int argc, char** argv) {
-        srand(time(NULL)); 
-        pthread_t readThread, writeThread;
-        struct Parameters args;
-	int srvfd, connfd;
-	int first_prime, sec_prime; //the two prime numbers
+    srand(time(NULL));
+    pthread_t readThread, writeThread;
+    struct Parameters args;
+    int srvfd, connfd;
+    int first_prime, sec_prime; //the two prime numbers
 
-	if(argc < 2) {
-	   printf("Usage: %s port\n", argv[0]);
-	   exit(0);
-	}
+    if(argc < 2) {
+        printf("Usage: %s port\n", argv[0]);
+        exit(0);
+    }
 
-	srvfd = makeListener(atoi(argv[1]));
-	connfd = listenFor(srvfd);
+    srvfd = makeListener(atoi(argv[1]));
 
+    while(1) {
+        connfd = listenFor(srvfd);
         first_prime = 31;
         sec_prime = 19;
         printf("firstPrime = %d, SecondPrime= %d\n", first_prime , sec_prime);
@@ -150,7 +150,7 @@ int main(int argc, char** argv) {
         int t = totient(first_prime * sec_prime);
         int e = rand() % t;
         while(gcd(e, t) != 1) {
-          e = rand() % t;
+            e = rand() % t;
         }
         int d = mod_inverse(e, t);
         printf("c = %d t = %d e = %d d = %d\n", c,t,e,d);
@@ -165,10 +165,9 @@ int main(int argc, char** argv) {
         printf("e%d c%d d%d\n", args.serverE, args.serverN, args.serverD);
         pthread_create(&readThread, NULL, read_data, &args);
         pthread_create(&writeThread, NULL, write_data, &args);
+    }
 
-        pthread_join(readThread, NULL);
-        pthread_join(writeThread, NULL);
-        close(connfd);
-        close(srvfd);
-        exit(0);
+    close(connfd);
+    close(srvfd);
+    exit(0);
 }
