@@ -98,6 +98,12 @@ long endecrypt(long msg, long key, long c) {
   return modulo(msg, key, c);
 }
 
+char decrypt(long msg, long key, int c) {
+    printf("%d decrypted using key=%d,c=%d as %d", msg, key, c, modulo(msg, key, c));
+    return modulo(msg, key, c);
+}
+
+
 // Compute the modular inverse base^-1 % m
 long mod_inverse(long base, long m) {
   long mod = m;
