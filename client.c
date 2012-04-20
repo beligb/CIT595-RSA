@@ -1,75 +1,131 @@
 #include "mysocket.h"
 #include "rsa.h"
-#include <stdio.h>
-#include <stdlib.h>
 #include <pthread.h>
 
-struct args {
-  char *address;
-  char *buffer;
-  int fd;
+int did_it_return = 0;
+
+struct Parameters {
+int connfd, firstArg, secondArg, thirdArg, fourthArg, fifthArg;
 };
 
-pthread_mutex_t lock;
+/* Function to send the Keys */
 
-void *get_from_server(void *arg) {
-  struct args* myarg = (struct args*)arg;
+void send_key(struct Parameters *args){
+    write(args->connfd, &args->firstArg, sizeof(int));
+    write(args->connfd, &args->secondArg, sizeof(int));
+    printf("My public key is %d %d\n", args->firstArg, args->secondArg);
+    printf("My private key is %d, %d\n", args->thirdArg, args->secondArg);
+}
 
-  while(1) {
-    bzero(myarg->buffer, 150000);
+/* Function to receive the Keys */
 
-    int n = 1;
-    while(n != 0) {
-      n = write(myarg->fd, myarg->buffer, strlen(myarg->buffer));
-      printf("%s", myarg->buffer);
-      bzero(myarg->buffer, 150000);
+void receive_key(struct Parameters *args) {
+    recv(args->connfd, &args->fourthArg, sizeof(int), 0);
+    recv(args->connfd, &args->fifthArg, sizeof(int), 0);
+    printf("Friends' public key : %d %d\n", args->fourthArg, args->fifthArg);
+}
+
+/* Function to read the data & Decrypt it */
+void *read_data(void *fd){
+    struct Parameters *args = (struct Parameters *)fd;
+    int size_of_buffer = 0;
+    int buffer_of_encoding[512];
+    char buffer[512];
+    bzero(buffer, 512);
+
+    bzero(buffer_of_encoding, 512);
+    int i = 0;
+
+    while(1) {
+        size_of_buffer = recv(args->connfd, buffer_of_encoding, sizeof(buffer_of_encoding), 0);
+        size_of_buffer /= 4;
+        printf("Server recieved the data\n");
+        printf("size_of_buffer: %d\n", size_of_buffer);
+
+        for (i = 0; i < size_of_buffer; i++) {
+                 buffer_of_encoding[i] = ntohl(buffer_of_encoding[i]);
+                 printf("%d\n", buffer_of_encoding[i]);
+        }
+        printf("BEGIN DECRYPTING!!!!!!d=%d, c=%d", args->thirdArg, args->secondArg);
+        for(i = 0; i < size_of_buffer; i++) {
+            buffer[i] = endecrypt(buffer_of_encoding[i], args->thirdArg, args->secondArg );
+            printf("buffer[i] = %c\n", buffer[i]);
+
+        }
+
+        if(strcmp(buffer, "quit") == 0) {
+            write(args->connfd, buffer, sizeof(buffer));
+            return;
+        }
+         bzero(buffer, 512);
+
+
     }
-  }
-
-  close(myarg->fd);
-  free(myarg->buffer);
-  free(myarg);
 }
 
-void *send_to_server(void *arg) {
-  struct args* myarg = (struct args*)arg;
-  
-  while(1) {
-    bzero(myarg->buffer, 150000);
-    read(myarg->fd, myarg->buffer, 150000);
-  }
+/* Function to write the data*/
+void *write_data(void *fd) {
+    struct Parameters *args = (struct Parameters *)fd;
+    char buffer[512];
+    bzero(buffer, 512);
+    int i = 0;
+    while(1) {
+        while(1) {
+        if((buffer[i] = getchar()) == '\n') {
+            buffer[i] = '\0';
+            i = 0;
+            break;
+        }
+        else {
+            i++;
+        }
+        }
 
-  close(myarg->fd);
-  free(myarg->buffer);
-  free(myarg);
+        write(args->connfd, buffer,strlen(buffer));
+        if(strcmp(buffer, "quit") == 0) {
+
+           return;
+       }
+        bzero(buffer, 512);
+
+    }
 }
 
+/* Main function that also spawns the thread */
 int main(int argc, char** argv) {
-  int connfd;
+        srand(time(NULL));
+        pthread_t readThread, writeThread;
+        struct Parameters args;
+        int connfd;
+        char buffer[256];
+        int first_prime, sec_prime; //the two prime numbers
 
-  pthread_t read_thread, write_thread;
-  struct args* myarg[2];
-  pthread_mutex_init(&lock, NULL);
+        if(argc < 2) {
+           printf("Usage: %s port\n", argv[0]);
+           exit(0);
+        }
 
-  if(argc < 2) {
-    printf("Usage: %s port\n", argv[0]);
-    exit(0);
-  }
-  
-  connfd = connectTo("localhost", atoi(argv[1]));
-  
-  myarg[0] = (struct args*)malloc(sizeof(struct args));
-  myarg[0]->buffer = (char *)malloc(sizeof(char)*150000);
-  myarg[0]->fd = connfd;
-  pthread_create(&read_thread, NULL, send_to_server, myarg[0]);
+        connfd = connectTo("localhost", atoi(argv[1]));
 
-  myarg[1] = (struct args*)malloc(sizeof(struct args));
-  myarg[1]->buffer = (char *)malloc(sizeof(char)*150000);
-  myarg[1]->fd = connfd;
-  pthread_create(&write_thread, NULL, get_from_server, myarg[1]);
+        first_prime = 3101;
+        sec_prime = 971;
+        printf("firstPrime = %d, SecondPrime= %d\n", first_prime , sec_prime);
+        int c = first_prime * sec_prime;
+        int t = totient(first_prime*sec_prime);
+        int e = coprime(t);
+        int d = mod_inverse(e, (first_prime - 1) * (sec_prime - 1));
+        printf("c = %d t = %d e = %d d = %d\n", c,t,e,d);
 
-  pthread_join(read_thread, NULL);
-  pthread_join(write_thread, NULL);
-
-  pthread_exit(0);
+        args.connfd = connfd;
+        args.firstArg  = e;
+        args.secondArg = c;
+        args.thirdArg = d;
+        receive_key(&args);
+        send_key(&args);
+        printf("e%d c%d d%d\n", args.firstArg, args.secondArg, args.thirdArg);
+        pthread_create(&writeThread, NULL, write_data, &args);
+        pthread_create(&readThread, NULL, read_data, &args);
+        pthread_join(readThread, NULL);
+        pthread_cancel(writeThread);
+        close(connfd);
 }
