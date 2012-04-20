@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
-int generatePrimeNumbers(int *m, int *n) {
-    int maximum = *m > *n ? *m : *n;
-    int *primeList = (int *)malloc(maximum * sizeof(int));
-    int index = 1; 
-    int i = 3;
+int generatePrimeNumbers(long *m, long *n) {
+    long maximum = *m > *n ? *m : *n;
+    long *primeList = (long *)malloc(maximum * sizeof(long));
+    long index = 1;
+    long i = 3;
     primeList[0] = 2;
     while(index < maximum) {
         if (isPrime(i) == 1) {
@@ -21,25 +22,29 @@ int generatePrimeNumbers(int *m, int *n) {
     *n = primeList[*n - 1];     
     free(primeList);
 }
-int totient(int n) {
-    int *primeList  = (int *)malloc(n * sizeof(int));
+
+int isPrime(long x) {
+    long i = 0;
+    for(i = 2; i  < x; i++) {
+        if((x % i) == 0)return 0;
+    }
+    return 1;
+}
+
+long totient( long n) {
+    long *primeList  = ( long *)malloc(n * sizeof( long));
     primeList[0] = 2;
-    int j = 0;
-    int p;
-    int q;
-    int index = 1;
-    int i = 2;
+    long j = 0;
+    long p;
+    long q;
+    long index = 1;
+    long i = 2;
     for(i = 3; i < n; i +=2) {
         if(isPrime(i) == 1) {
             primeList[index] = i;
             index++;
         }
-    } 
-    for(i = 0; i < index; i++) {
-       // printf("prime = %d\n", primeList[i]);
-
     }
-    //now we have the list in primeList, brute force to find the primeNUmbers
     for(i = 0; i < index; i++) {
         for (j = 0 ; j  <index; j++) {
             if(primeList[i] * primeList[j] == n) {
@@ -72,7 +77,7 @@ int totient(int n) {
     }
   }
   return value;
-}
+}*/
 
 long getM(long a, long b) {
   return (a - 1) * (b - 1);
@@ -100,7 +105,7 @@ long gcd(long a, long b) {
 
   return b;
 }
-*/
+
 // Computes Math.mod(Math.pow(a, b), c), for large values of a, b, c
 long modulo(long a, long b, long c) {
   long solution = 1;
@@ -385,9 +390,9 @@ void generateKeys(long a, long b, long *e, long *d, long *c) {
   long k = 567;
   long l = 3;
   printf("This is M %ld\n", getM(k, l));
-}
+}*/
 
-/*
+
 void main() {
 srand(time(NULL));
 char *input = "Hello";
@@ -426,4 +431,4 @@ printf("Hello has been translated into %d %d %d %d %d\n", encOutput[0], encOutpu
 //printf("d = %d \t x = %d \t y = %d\n", d,x,y);
 //coprime(5);
 
-}*/
+}
