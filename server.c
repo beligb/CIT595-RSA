@@ -1,10 +1,12 @@
 #include "mysocket.h"
-#include "rsab.h"
+#include "rsa.h"
 #include <pthread.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 struct Parameters {
-    int connfd, clientE, clientN, serverD, serverE, serverN;
+    int connfd;
+    long clientE, clientN, serverD, serverE, serverN;
 };
 
 char *numToString(int length) {
@@ -30,17 +32,15 @@ char *numToString(int length) {
 
 /* Function to send the Keys */
 void send_key(struct Parameters *args){
-    write(args->connfd, &args->serverN, sizeof(int));
-    write(args->connfd, &args->serverE, sizeof(int));
-    printf("My public key is %d %d\n", args->serverN, args->serverE);
-    printf("My private key is %d\n", args->serverD);
+    write(args->connfd, &args->serverN, sizeof(long));
+    write(args->connfd, &args->serverE, sizeof(long));
 }
 
 /* Function to receive the Keys */
 void receive_key(struct Parameters *args) {
-    recv(args->connfd, &args->clientN, sizeof(int), 0);
-    recv(args->connfd, &args->clientE, sizeof(int), 0);
-    printf("The client's public key is %d %d\n", args->clientN, args->clientE);
+    recv(args->connfd, &args->clientN, sizeof(long), 0);
+    recv(args->connfd, &args->clientE, sizeof(long), 0);
+    printf("The client's public key is %ld %ld\n", args->clientN, args->clientE);
 }
 
 /* Function to read the data & Decrypt it */
@@ -48,10 +48,10 @@ void *read_data(void *fd) {
     struct Parameters *args = (struct Parameters *)fd;
     int i;
     int size_of_buffer = 0;
-    char buffer_of_encoding[512];
-    char buffer[512];
-    bzero(buffer, 512);
-    bzero(buffer_of_encoding, 512);
+    char buffer_of_encoding[1024];
+    char buffer[1024];
+    bzero(buffer, 1024);
+    bzero(buffer_of_encoding, 1024);
 
     while(1) {
         int n = recv(args->connfd, buffer_of_encoding, sizeof(buffer_of_encoding), 0);
@@ -63,7 +63,7 @@ void *read_data(void *fd) {
             i = 0;
             char *ptr = strtok(buffer_of_encoding, " ");
             while(ptr != NULL) {
-                buffer[i] = (char)endecrypt(atoi(ptr), args->serverD, args->serverN);
+                buffer[i] = (char)decrypt(atoi(ptr), args->serverD, args->serverN);
                 ptr = strtok(NULL, " ");
                 i++;
             }
@@ -75,8 +75,8 @@ void *read_data(void *fd) {
                 break;
             }
 
-            bzero(buffer, 512);
-            bzero(buffer_of_encoding, 512);
+            bzero(buffer, 1024);
+            bzero(buffer_of_encoding, 1024);
         }
     }
 }
@@ -84,12 +84,12 @@ void *read_data(void *fd) {
 /* Function to write the data*/
 void *write_data(void *fd) {
     struct Parameters *args = (struct Parameters *)fd;
-    char buffer_of_encoding[512];
-    char buffer[512];
+    char buffer_of_encoding[1024];
+    char buffer[1024];
     char number[10];
-    bzero(buffer, 512);
-    bzero(buffer_of_encoding, 512);
-    char letter[512];
+    bzero(buffer, 1024);
+    bzero(buffer_of_encoding, 1024);
+    char letter[1024];
 
     int i = 0;
     int j = 0;
@@ -106,7 +106,7 @@ void *write_data(void *fd) {
                 break;
             } else {
                 bzero(number, 10);
-                strcpy(number, numToString(endecrypt((int)letter[i], args->clientE, args->clientN)));
+                strcpy(number, numToString(encrypt((int)letter[i], args->clientE, args->clientN)));
                 strcat(buffer, number);
                 j += strlen(number);
                 buffer[j] = ' ';
@@ -120,9 +120,9 @@ void *write_data(void *fd) {
             break;
         }
 
-        bzero(letter, 512);
-        bzero(buffer, 512);
-        bzero(buffer_of_encoding, 512);
+        bzero(letter, 1024);
+        bzero(buffer, 1024);
+        bzero(buffer_of_encoding, 1024);
     }
 }
 
@@ -132,10 +132,10 @@ int main(int argc, char** argv) {
     pthread_t readThread, writeThread;
     struct Parameters args;
     int srvfd, connfd;
-    int first_prime, sec_prime; //the two prime numbers
+    long first_prime, sec_prime, e, c, d;
 
     if(argc < 2) {
-        printf("Usage: %s port\n", argv[0]);
+        printf("Run server with 'server [port number]'");
         exit(0);
     }
 
@@ -143,17 +143,14 @@ int main(int argc, char** argv) {
 
     while(1) {
         connfd = listenFor(srvfd);
-        first_prime = 31;
-        sec_prime = 19;
-        printf("firstPrime = %d, SecondPrime= %d\n", first_prime , sec_prime);
-        int c = first_prime * sec_prime;
-        int t = totient(first_prime * sec_prime);
-        int e = rand() % t;
-        while(gcd(e, t) != 1) {
-            e = rand() % t;
-        }
-        int d = mod_inverse(e, t);
-        printf("c = %d t = %d e = %d d = %d\n", c,t,e,d);
+
+        printf("\nEnter two numbers (m n) to generate keys based on the mth and nth primes: ");
+        scanf("%ld %ld", &first_prime, &sec_prime);
+        printf("\nGenerating keys...\n");
+        generatePrimeNumbers(&first_prime, &sec_prime);
+        generateKeys(first_prime, sec_prime, &e, &d, &c);
+        printf("Your public key (will be sent to server): %ld %ld\n", e, c);
+        printf("Your private key (will not be sent): %ld %ld\n", d, c);
 
         args.connfd = connfd;
         args.serverE = e;
@@ -162,7 +159,6 @@ int main(int argc, char** argv) {
         send_key(&args);
         receive_key(&args);
 
-        printf("e%d c%d d%d\n", args.serverE, args.serverN, args.serverD);
         pthread_create(&readThread, NULL, read_data, &args);
         pthread_create(&writeThread, NULL, write_data, &args);
     }
