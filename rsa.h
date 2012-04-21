@@ -12,7 +12,7 @@ int isPrime(long x) {
     return 1;
 }
 
-int generatePrimeNumbers(long *m, long *n) {
+void generatePrimeNumbers(long *m, long *n) {
     long maximum = *m > *n ? *m : *n;
     long *primeList = (long *)malloc(maximum * sizeof(long));
     long index = 1;
