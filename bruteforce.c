@@ -3,9 +3,9 @@
 #include <math.h>
 
 long getPrime(long index);
-long getCoPrime(long number);
+long coprime(long x);
 long gcd(long num1, long num2);
-long getModInv(long e, long m);
+long mod_inverse(long base, long m);
 long isprime(long x);
 long modulo(long a, long b, long c);
 long encrypt(long msg, long key, long c);
@@ -40,8 +40,8 @@ break;
 
 }
 t = (firstPrime - 1) * (secondPrime -1);
-e = getCoPrime(t);
-d = getModInv(e,t);
+e = coprime(t);
+d = mod_inverse(e,t);
 printf("Primes are: %d %d\n", firstPrime, secondPrime);
 printf("The totient is %d\n", t);
 printf("The d is found out to be %d\n", d);
@@ -66,14 +66,41 @@ return 0;
 
 }
 
-long getModInv(long e, long n) {
-	int d;
-	for (d=1; d<n*2; d++) {
-		if ((d*e) % n == 1 && d != e) {
-			return d;
-		}
-	}
-	return 0;
+
+// Compute the modular inverse base^-1 % m
+long mod_inverse(long base, long m) {
+  long mod = m;
+  // Check to make sure base and m are coprime
+  if(gcd(base, m) != 1) {
+    return 0;
+  } 
+  long preA = 1, preB = 0;
+  long quotient[1000];
+  long remainder = 0, counter = 0, A = 0, B = 0;
+
+  while(base % m != 0) {
+    remainder = base % m;
+    base = m;
+    m = remainder;
+    quotient[counter] = base / m;
+    counter++;
+  }
+  
+  if(counter > 2) {
+    while(counter >= 0) {
+      B = preA;
+      A = preB - quotient[counter] * preA;
+      preB = B;
+      preA = A;
+      counter--;
+    }
+  } else {
+    return 0;
+  }
+  if(A % mod < 0) {
+    return A % mod + mod;
+  }
+  return A % mod;
 }
 
 
@@ -97,13 +124,14 @@ long getPrime(long index) {
     }
     return prime;
 }
+long coprime(long x) {
+  long value = rand() % x;
+  
+  while((gcd(value, x) != 1) || (value < 0)) {
+    value++;
+  }
 
-long getCoPrime(long number){
-	int i;
-	for (i=number; i>0; i--) {
-		if (gcd(number, i) == 1) return i;
-	}
-	return 0;
+  return value;
 }
 
 long gcd(long num1, long num2) {
