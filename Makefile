@@ -1,8 +1,10 @@
 # Puneet Vohra, Belig Borjiged CIT59 RSA
 
-all:	rsa	client	server
+all:	rsa	client	server bruteforce
 
-rsa:	
+bruteforce: 
+        gcc -Wall -g bruteforce.c -o bruteforce
+rsa:	rsa.h
 	gcc -Wall -g rsa.c -o rsa 
 
 client:	mysocket.h
