@@ -4,6 +4,7 @@ all:	rsa	client	server bruteforce
 
 bruteforce: 
         gcc -Wall -g bruteforce.c -o bruteforce
+
 rsa:	rsa.h
 	gcc -Wall -g rsa.c -o rsa 
 
