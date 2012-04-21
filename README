@@ -4,17 +4,19 @@ HOW TO RUN:
 To compile: "make"
 To run server: server [port number]
 To run client: client [host number] [port number]
-To run bruteforce: bruteforce
+To run bruteforce: bruteforce  // Once it asks for the key, enter [public e] [public N]
+
+** Note: when prompted to enter numbers for the mth and nth prime numbers, it is best to use numbers under 30 for better response times (the numbers entered will be used to find the corresponding prime numbers to use to generate the public/private keys).
 
 URL FOR REPOSITORY: 
 https://beligb@github.com/beligb/CIT595-RSA.git
 
 PROCEDURE/METHOD:
-We worked off of HTTP Server code (from the previous assignment) as a starting point for our RSA chat server.  It was rather tricky to convert the HTTP Server into the server that we needed, but once that was done, we had a good foundation for the Client side, as it did basically the same thing, but in a different order to prevent deadlocking.  It was very difficult to get the different programs to tell each other when they wanted to quit, as they both had multiple threads that sometimes needed to be killed simultaneously, and the Client had to tell the Server it was going to quit so that the Server could acknowledge it. In our case, the Client can quit but the Server can still run and is ready to get connected to again until someone from the Server side actually explicitly quits the Server. There was a bit of confusion about what the "Totient" was and what its formula was (whether it was (p-1) * (q-1) or just the total number of prime numbers less than the mod component of public key). In the end, we just used the (p-1) * (q-1) as it gave us a correct encryption/decryption.
+We worked off of HTTP Server code (from the previous assignment) as a starting point for our RSA chat server.  It was rather tricky to convert the HTTP Server into the Server that we needed, but once that was done, we had a good foundation for the Client side, as it did basically the same thing, but in a different order to prevent deadlocking.  It was very difficult to get the different programs to tell each other when they wanted to quit, as they both had multiple threads that sometimes needed to be killed before exiting, and the Server had to tell the Client it was going to quit so that the Client could acknowledge it and quit itself. In our case, the Client can quit but the Server will still run and be ready to be connected to again unless someone from the Server side actually explicitly quits the Server. There was a bit of confusion about what the "Totient" was and what its formula was (whether it was (p-1) * (q-1) or just the total number of prime numbers less than the mod component of the public key). In the end, we just used the (p-1) * (q-1) as our "M" as it gave us a correct encryption/decryption.
 
-Another difficult aspect of this project was encrypting and decrypting the messages to be sent over the sockets. Especially, converting each letter into a corresponding number and back again. So we needed to take care of lots of over flow problems, which we managed to do, as well as printing out long integers instead of the regular ones.
+Another difficult aspect of this project was encrypting and decrypting the messages to be sent over the sockets, especially, converting each letter into a corresponding number and back again. We needed to take care of lots of overflow problems, which we managed to do by restricting the size of our prime numbers that we generate, as well as printing out long integers instead of the regular ones.  For user input in the beginning of our program, it is best to use smaller numbers no larger than 30 for the best response time.  This way the program only has to search up to the first 30 prime numbers, minimizing the numbers it needs to cycle through to retrieve a corresponding prime number.  We noticed that the larger our numbers got, the more painfully slow our program became.  
 
-To conclude, we learnt a lot through this project.  It was interesting to see how RSA could be used when sending messages between two parties, and sort of demystified the process a bit.  It was also nice to get a working chat server up, as it seemed like an impossible task when it was first brought up in class.   
+To conclude, we learnt a lot through this project.  It was interesting to see how RSA could be used when sending messages between two parties, and sort of demystified the process a bit.  It was also nice to get a working chat server up, as it seemed like an impossible task when it was first brought up in class, but was much more manageable after having done the HTTP Server.
 
 
 TEST RUN:
