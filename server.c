@@ -9,9 +9,9 @@ struct Parameters {
     long clientE, clientN, serverD, serverE, serverN;
 };
 
-char *numToString(int length) {
+char *numToString(long length) {
     char size[20];
-    int character = length;
+    long character = length;
     int counter = 0;
     while(length > 0) {
         character = length % 10;
@@ -69,6 +69,7 @@ void *read_data(void *fd) {
 
             if(strcmp(buffer, "quit") == 0) {
                 printf("Client is quitting.\n");
+                pthread_exit(0);
                 break;
             } else {
                 printf("Client's message decrypted: ");
@@ -103,7 +104,11 @@ void *write_data(void *fd) {
             } else {
                 bzero(number, 10);
                 strcpy(number, numToString(encrypt((int)letter[i], args->clientE, args->clientN)));
-                strcat(buffer, number);
+                if(strlen(buffer) == 0) {
+                    strcpy(buffer, number);
+                } else {
+                    strcat(buffer, number);
+                }
                 j += strlen(number);
                 buffer[j] = ' ';
                 j++;
@@ -111,9 +116,7 @@ void *write_data(void *fd) {
             i++;
         }
 
-        if(strlen(buffer) > 0) {
-            write(args->connfd, buffer, strlen(buffer));
-        }
+        write(args->connfd, buffer, strlen(buffer));
 
         if(strcmp(letter, "quit") == 0) {
             exit(0);
