@@ -58,8 +58,6 @@ void *read_data(void *fd) {
         size_of_buffer = n / 4;
         if(size_of_buffer > 0) {
             printf("\nMessage received from Client: %s\n", buffer_of_encoding);
-
-            printf("Client's message decrypted: ");
             i = 0;
             char *ptr = strtok(buffer_of_encoding, " ");
             while(ptr != NULL) {
@@ -68,11 +66,13 @@ void *read_data(void *fd) {
                 i++;
             }
             buffer[i] = '\0';
-            printf("%s\n", buffer);
 
             if(strcmp(buffer, "quit") == 0) {
-                close(args->connfd);
+                printf("Client is quitting.\n");
                 break;
+            } else {
+                printf("Client's message decrypted: ");
+                printf("%s\n", buffer);
             }
 
             bzero(buffer, 1024);
@@ -84,18 +84,14 @@ void *read_data(void *fd) {
 /* Function to write the data*/
 void *write_data(void *fd) {
     struct Parameters *args = (struct Parameters *)fd;
-    char buffer_of_encoding[1024];
     char buffer[1024];
     char number[10];
     bzero(buffer, 1024);
-    bzero(buffer_of_encoding, 1024);
     char letter[1024];
 
-    int i = 0;
-    int j = 0;
-
     while(1) {
-        fflush(stdin);
+        int i = 0;
+        int j = 0;
         while(1) {
             letter[i] = getchar();
             if(letter[i] == '\n') {
@@ -115,14 +111,16 @@ void *write_data(void *fd) {
             i++;
         }
 
-        write(args->connfd, buffer, strlen(buffer));
+        if(strlen(buffer) > 0) {
+            write(args->connfd, buffer, strlen(buffer));
+        }
+
         if(strcmp(letter, "quit") == 0) {
-            break;
+            exit(0);
         }
 
         bzero(letter, 1024);
         bzero(buffer, 1024);
-        bzero(buffer_of_encoding, 1024);
     }
 }
 
@@ -132,7 +130,8 @@ int main(int argc, char** argv) {
     pthread_t readThread, writeThread;
     struct Parameters args;
     int srvfd, connfd;
-    long first_prime, sec_prime, e, c, d;
+    char value[100];
+    bzero(value, 100);
 
     if(argc < 2) {
         printf("Run server with 'server [port number]'");
@@ -144,6 +143,7 @@ int main(int argc, char** argv) {
     while(1) {
         connfd = listenFor(srvfd);
 
+        long first_prime, sec_prime, e, c, d;
         printf("\nEnter two numbers (m n) to generate keys based on the mth and nth primes: ");
         scanf("%ld %ld", &first_prime, &sec_prime);
         printf("\nGenerating keys...\n");
