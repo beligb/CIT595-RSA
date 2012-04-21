@@ -2,7 +2,6 @@
 #include <string.h>
 #include <math.h>
 
-long getPrime(long index);
 long coprime(long x);
 long gcd(long num1, long num2);
 long mod_inverse(long base, long m);
@@ -104,26 +103,7 @@ long mod_inverse(long base, long m) {
 }
 
 
-long getPrime(long index) {
-    int count = 0;
-    int prime = 2;
-    int i;
-    while(count < index && index != 1) {
-        prime++;
-        int flag = 1;
-        for(i = 1; i < prime; i++) {
-            if(i == 1) continue;
-            else if(prime % i == 0){
-                flag = 0;
-                break;
-            }
-        }
-        if(flag) {
-            count++;
-        }
-    }
-    return prime;
-}
+
 long coprime(long x) {
   long value = rand() % x;
   
