@@ -2,6 +2,15 @@
 #include <string.h>
 #include <math.h>
 
+long getPrime(long index);
+long getCoPrime(long number);
+long gcd(long num1, long num2);
+long getModInv(long e, long m);
+long isprime(long x);
+long modulo(long a, long b, long c);
+long encrypt(long msg, long key, long c);
+char decrypt(long msg, long key, int c);
+
 int main(){
 char message[256];
 long pubkey_e;// exponent of the public key
@@ -12,6 +21,149 @@ char * _pubkey_e = strtok(message, " ");
 char * _pubkey_mod = strtok(NULL, " ");
 pubkey_e = atol(_pubkey_e);
 pubkey_mod = atol(_pubkey_mod);
+printf("The key is %d %d\n", pubkey_e, pubkey_mod);
+long firstPrime, secondPrime, n, t, j, e, d, ciphertext,s;
+
+long fact;
+for (secondPrime = 2; secondPrime < pubkey_mod; secondPrime++){
+fact = pubkey_mod%secondPrime;
+firstPrime = pubkey_mod/secondPrime;
+if(fact == 0){
+if(isprime(firstPrime) == 1){
+if(isprime(secondPrime) == 1){
+//printf("The two numbers are %d and %d\n", firstPrime, secondPrime);
+break;
+
+}
+}
+}
+
+}
+t = (firstPrime - 1) * (secondPrime -1);
+e = getCoPrime(t);
+d = getModInv(e,t);
+printf("Primes are: %d %d\n", firstPrime, secondPrime);
+printf("The totient is %d\n", t);
+printf("The d is found out to be %d\n", d);
+printf("Cracked private key is: %d, %d\n", d, pubkey_mod);
+long counter = 0;
+while (counter == 0){
+printf("Enter a letter to decrypt or 'quit' to exit:\n");
+fgets(message, 255, stdin);
+ciphertext = atol(message);
+if(strcmp(message, "quit\n") == 0){
+counter = 1;
+break;
+	}
+			s = modulo(ciphertext, d, pubkey_mod);
+			if(s < 0) {s *= -1;}
+			printf("This letter decrypted to %d\n",s);
+			printf("The letter is %c\n", decrypt(ciphertext, d, pubkey_mod));
+		
+	}
+
 return 0;
 
 }
+
+long getModInv(long e, long n) {
+	int d;
+	for (d=1; d<n*2; d++) {
+		if ((d*e) % n == 1 && d != e) {
+			return d;
+		}
+	}
+	return 0;
+}
+
+
+long getPrime(long index) {
+    int count = 0;
+    int prime = 2;
+    int i;
+    while(count < index && index != 1) {
+        prime++;
+        int flag = 1;
+        for(i = 1; i < prime; i++) {
+            if(i == 1) continue;
+            else if(prime % i == 0){
+                flag = 0;
+                break;
+            }
+        }
+        if(flag) {
+            count++;
+        }
+    }
+    return prime;
+}
+
+long getCoPrime(long number){
+	int i;
+	for (i=number; i>0; i--) {
+		if (gcd(number, i) == 1) return i;
+	}
+	return 0;
+}
+
+long gcd(long num1, long num2) {
+    if(num2 == 0) {
+        return num1;
+	}
+	else {
+		return gcd(num2, num1 % num2);
+	}
+}
+
+long isprime(long x) {
+    long i = 0;
+    for(i = 2; i  < x; i++) {
+        if((x % i) == 0)return 0;
+    }
+    return 1;
+}
+
+
+//Computes Math.mod(Math.pow(a, b), c), for large values of a, b, c
+long modulo(long a, long b, long c) {
+  long solution = 1;
+  long length = 0;
+
+  while(b > 0) {
+    long index = b % 2;
+    if(index == 1) {
+      b = (b - 1) / 2;
+    } else {
+      b = b / 2;
+    }
+
+    if(index == 1) {
+      long term = (long)a;
+      long counter = 1;
+
+      while(counter <= length) {
+	if(length != 0) {
+	  term = (term * term) % c;
+	}
+	counter += 1;
+      }
+      solution = (solution * term) % c;
+    }
+    length++;
+  }
+  if(solution < 0) {
+    solution = solution + c;
+  }
+  return solution;
+}
+
+// Given an integer representing an ASCII value, encrypt it via RSA
+long encrypt(long msg, long key, long c) {
+  return modulo(msg, key, c);
+}
+
+char decrypt(long msg, long key, int c) {
+    //printf("%d decrypted using key=%d,c=%d as %d", msg, key, c, modulo(msg, key, c));
+    return modulo(msg, key, c);
+}
+
