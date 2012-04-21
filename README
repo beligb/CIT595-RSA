@@ -3,10 +3,10 @@
 HOW TO RUN:
 To compile: "make"
 To run server: server [port number]
-To run client: client [host number] [port number]
+To run client: client [host name] [port number]
 To run bruteforce: bruteforce  // Once it asks for the key, enter [public e] [public N]
 
-** Note: when prompted to enter numbers for the mth and nth prime numbers, it is best to use numbers under 30 for better response times (the numbers entered will be used to find the corresponding prime numbers to use to generate the public/private keys).
+** Note: when prompted to enter numbers for the mth and nth prime numbers, it is best to use numbers under 30 for better response times (the numbers entered will be used to find the corresponding prime numbers to use to generate the public/private keys).  Also, due to some issues with testing between PCs in the ENIAC lab, we did the majority of our testing using "localhost" as the host name.
 
 URL FOR REPOSITORY: 
 https://beligb@github.com/beligb/CIT595-RSA.git
