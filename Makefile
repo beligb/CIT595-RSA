@@ -2,16 +2,13 @@
 
 all:	rsa	client	server	bruteforce
 
-bruteforce: 
+bruteforce: rsa.h
 	gcc -Wall -g bruteforce.c -o bruteforce
 
-rsa:	rsa.h
-	gcc -Wall -g rsa.c -o rsa 
-
-client:	mysocket.h
+client:	mysocket.h	rsa.h
 	gcc -Wall -g -lpthread client.c -o client 
 
-server:	mysocket.h
+server:	mysocket.h	rsa.h
 	gcc -Wall -g -lpthread server.c -o server 
 
 clean:
