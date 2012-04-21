@@ -179,7 +179,7 @@ long mod_inverse(long base, long m) {
 }
 
 void generateKeys(long a, long b, long *e, long *d, long *c) {
-  while((*c < 2) || (*e < 2) || (*d < 2)) {
+  while((*c < 2) || (*c > 10000) || (*e < 2) || (*e > 10000) || (*d < 2) || (*d > 10000)) {
     *c = a * b;
     *e = coprime( (a - 1) * (b - 1));
     *d = mod_inverse(*e,  ((a - 1) * (b - 1)));
