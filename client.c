@@ -9,9 +9,9 @@ struct Parameters {
     long clientE, clientN, clientD, serverE, serverN;
 };
 
-char *numToString(int length) {
+char *numToString(long length) {
     char size[100];
-    int character = length;
+    long character = length;
     int counter = 0;
     while(length > 0) {
         character = length % 10;
@@ -106,7 +106,11 @@ void *write_data(void *fd) {
             } else {
                 bzero(number, 10);
                 strcpy(number, numToString(encrypt((int)letter[i], args->serverE, args->serverN)));
-                strcat(buffer, number);
+                if(strlen(buffer) == 0) {
+                    strcpy(buffer, number);
+                } else {
+                    strcat(buffer, number);
+                }
                 j += strlen(number);
                 buffer[j] = ' ';
                 j++;
@@ -114,9 +118,7 @@ void *write_data(void *fd) {
             i++;
 	}
 
-        if(strlen(buffer) > 0) {
-            write(args->connfd, buffer, strlen(buffer));
-        }
+        write(args->connfd, buffer, strlen(buffer));
 
         if(strcmp(letter, "quit") == 0) {
             break;
