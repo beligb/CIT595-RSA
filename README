@@ -1,0 +1,136 @@
+**** RSA Project for Puneet Vohra and Belig Borjiged CIT595 ****
+
+HOW TO RUN:
+To compile: "make"
+To run server: server [port number]
+To run client: client [host number] [port number]
+To run bruteforce: bruteforce
+
+URL FOR REPOSITORY: 
+https://beligb@github.com/beligb/CIT595-RSA.git
+
+PROCEDURE/METHOD:
+We worked off of HTTP Server code (from the previous assignment) as a starting point for our RSA chat server.  It was rather tricky to convert the HTTP Server into the server that we needed, but once that was done, we had a good foundation for the Client side, as it did basically the same thing, but in a different order to prevent deadlocking.  It was very difficult to get the different programs to tell each other when they wanted to quit, as they both had multiple threads that sometimes needed to be killed simultaneously, and the Client had to tell the Server it was going to quit so that the Server could acknowledge it. In our case, the Client can quit but the Server can still run and is ready to get connected to again until someone from the Server side actually explicitly quits the Server. There was a bit of confusion about what the "Totient" was and what its formula was (whether it was (p-1) * (q-1) or just the total number of prime numbers less than the mod component of public key). In the end, we just used the (p-1) * (q-1) as it gave us a correct encryption/decryption.
+
+Another difficult aspect of this project was encrypting and decrypting the messages to be sent over the sockets. Especially, converting each letter into a corresponding number and back again. So we needed to take care of lots of over flow problems, which we managed to do, as well as printing out long integers instead of the regular ones.
+
+To conclude, we learnt a lot through this project.  It was interesting to see how RSA could be used when sending messages between two parties, and sort of demystified the process a bit.  It was also nice to get a working chat server up, as it seemed like an impossible task when it was first brought up in class.   
+
+
+TEST RUN:
+/********************** SERVER SIDE *************************/
+beligb@CELERITY:/mnt/castor/seas_home/b/beligb/CIT595 HW/Project> server 9019
+
+Enter two numbers (m n) to generate keys based on the mth and nth primes: 21 23
+
+Generating keys...
+Your public key (will be sent to server): 3691 6059
+Your private key (will not be sent): 739 6059
+The client's public key is 5183 2339
+hi
+
+Message received from Client: 2594 2508 5586 5586 692 
+Client's message decrypted: hello
+
+Message received from Client: 5742 5586 3334 2594 
+Client's message decrypted: blah
+
+Message received from Client: 105 
+Client's message decrypted: i
+
+Message received from Client: 105 
+Client's message decrypted: i
+
+Message received from Client: 105 
+Client's message decrypted: i
+
+Message received from Client: 105 
+Client's message decrypted: i
+lel
+l
+l
+l
+l
+l
+f
+this is running right?
+
+Message received from Client: 105 105 32 2594 692 3681 2508 32 3684 692 
+Client's message decrypted: ii hope so
+
+Message received from Client: 4433 5249 2594 
+Client's message decrypted: ugh
+ok
+cit595 is the best class ever!
+
+Message received from Client: 3544 41 
+Client's message decrypted: :)
+
+Message received from Client: 3544 5048 
+Client's message decrypted: :D
+Jimmy JOhns sandwitch is awesome.....aaahhhhhg
+haha
+^
+
+/********************** CLIENT SIDE *************************/
+beligb@CELERITY:/mnt/castor/seas_home/b/beligb/CIT595 HW/Project> client localhost 9019
+
+Enter two numbers (m n) to generate keys based on the mth and nth primes: 20 21
+
+Generating keys...
+Your public key (will be sent to server): 2339 5183
+Your private key (will not be sent): 4859 5183
+The server's public key is 6059 3691
+
+Message received from Server: 186 673 
+Server's message decrypted: hi
+hello
+blah
+i
+i
+i
+i
+i
+Message received from Server: 2238 3225 2238 
+Server's message decrypted: lel
+
+Message received from Server: 2238 
+Server's message decrypted: l
+
+Message received from Server: 2238 
+Server's message decrypted: l
+
+Message received from Server: 2238 
+Server's message decrypted: l
+
+Message received from Server: 2238 
+Server's message decrypted: l
+
+Message received from Server: 2238 
+Server's message decrypted: l
+
+Message received from Server: 297 
+Server's message decrypted: f
+
+Message received from Server: 2246 186 673 33 600 673 33 600 2393 798 3944 3944 673 3944 3156 600 2393 673 3156 186 2246 4183 
+Server's message decrypted: this is running right?
+i hope so
+ugh
+
+Message received from Server: 3821 4395 
+Server's message decrypted: ok
+
+Message received from Server: 2861 673 2246 3004 3910 3004 600 673 33 600 2246 186 3225 600 38 3225 33 2246 600 2861 2238 3647 33 33 600 3225 4951 3225 2393 115 
+Server's message decrypted: cit595 is the best class ever!
+:)
+:D
+
+Message received from Server: 512 673 3648 3648 327 600 512 645 186 3944 33 600 33 3647 3944 3696 3385 673 2246 2861 186 600 673 33 600 3647 3385 3225 33 3821 3648 3225 4845 4845 4845 4845 4845 3647 3647 3647 186 186 186 186 186 3156 
+Server's message decrypted: Jimmy JOhns sandwitch is awesome.....aaahhhhhg
+
+Message received from Server: 186 3647 186 3647 
+Server's message decrypted: haha
+
+Message received from Server: 1088 
+Server's message decrypted: ^
+
